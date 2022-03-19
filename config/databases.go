@@ -1,4 +1,4 @@
-package databases
+package config
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 var db *gorm.DB
 var err error
 
-func connect_database() {
+func ConnectDatabase() (db *gorm.DB) {
 	envErr := godotenv.Load(".env")
 	if envErr != nil {
 		fmt.Printf("Could not load .env file")
@@ -26,7 +26,7 @@ func connect_database() {
 	// Database connection string
 	dbURI := fmt.Sprintf("host=%s user=%s dbname=%s sslmode=disable password=%s port=%s", host, user, dbname, dbpassword, dbPort)
 
-	// Openning connection to database
+	// Opening connection to database
 	db, err = gorm.Open(dialect, dbURI)
 
 	if err != nil {
@@ -34,7 +34,6 @@ func connect_database() {
 	} else {
 		fmt.Println("Connected to database successfully")
 	}
-
-	// Close the database connection when the main function closes
-	defer db.Close()
+	return db
+	// Close the database connection when the ConnectDatabase function closes
 }

@@ -1,43 +1,39 @@
 package main
 
 import (
+	"awesomeProject/config"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/joho/godotenv"
-	"os"
 )
 
-var db *gorm.DB
-var err error
+type Person struct {
+	gorm.Model
+
+	Name  string
+	Email string `gorm:"typevarchar(100);unique_index"`
+	Books []Book
+}
+
+type Book struct {
+	gorm.Model
+
+	Title      string
+	Author     string
+	CallNumber int
+	PersonID   int
+}
 
 func main() {
-	envErr := godotenv.Load(".env")
-	if envErr != nil {
-		fmt.Printf("Could not load .env file")
-		os.Exit(1)
-	}
-	dialect := os.Getenv("DIALECT")
-	host := os.Getenv("HOST")
-	dbPort := os.Getenv("DBPORT")
-	user := os.Getenv("USER")
-	dbname := os.Getenv("NAME")
-	dbpassword := os.Getenv("PASSWORD")
-
-	// Database connection string
-	dbURI := fmt.Sprintf("host=%s user=%s dbname=%s sslmode=disable password=%s port=%s", host, user, dbname, dbpassword, dbPort)
-
-	// Openning connection to database
-	db, err = gorm.Open(dialect, dbURI)
-
-	if err != nil {
-		fmt.Println("inside")
-		panic(err)
-	} else {
-		fmt.Println("Connected to database successfully")
-	}
-
-	// Close the database connection when the main function closes
+	db := config.ConnectDatabase()
+	fmt.Println("closed database")
 	defer db.Close()
+	//db.AutoMigrate(&Person{})
+	//db.AutoMigrate(&Book{})
+
+	//router := gin.Default()
+	//router.GET("/albums", models.GetAlbums)
+	//
+	//router.Run("localhost:8081")
 
 }
