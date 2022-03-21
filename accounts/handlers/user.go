@@ -14,15 +14,19 @@ func GetUserStatus() gin.HandlerFunc {
 		if err := c.ShouldBindQuery(&userRequestObj); err != nil {
 			log.Println("unable to bind userRequestObj", err.Error())
 		}
-		response := services.GetUserStatusService(&userRequestObj)
-		c.IndentedJSON(http.StatusOK, response)
+		response, statusCode := services.GetUserStatusService(&userRequestObj)
+		c.IndentedJSON(statusCode, response)
 	}
 
 }
 func CreateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		c.IndentedJSON(http.StatusOK, nil)
+		var userInfo serializers.CreateUser
+		if err := c.BindJSON(&userInfo); err != nil {
+			log.Println("unable to bind userRequestObj", err.Error())
+		}
+		services.CreateUserService(&userInfo)
+		c.Status(http.StatusNoContent)
 	}
 
 }
