@@ -1,45 +1,48 @@
-package services
+package userServices
 
 import (
+	"awesomeProject/accounts/enums"
 	"awesomeProject/accounts/models"
 	"awesomeProject/accounts/serializers"
+	"awesomeProject/authentication/serializers"
 	"awesomeProject/config"
 	"github.com/jinzhu/gorm"
 	"net/http"
 )
 
-func GetUserStatusService(userRequestObj *serializers.UserStatusRequest) (config.Response, int) {
+func GetUserStatusService(userRequestObj *userSerializers.UserStatusRequest) (config.Response, int) {
 	db := config.GetDb()
 	var userObj *gorm.DB
-	var users []models.User
+	var users []userModels.User
 	if userRequestObj.Mobile != "" {
-		userObj = db.Model(&models.User{}).Where("mobile = ?", userRequestObj.Mobile).Find(&users)
+		userObj = db.Model(&userModels.User{}).Where("mobile = ?", userRequestObj.Mobile).Find(&users)
 
 	} else if userRequestObj.Email != "" {
-		userObj = db.Model(&models.User{}).Where("email = ?", userRequestObj.Email).Find(&users)
+		userObj = db.Model(&userModels.User{}).Where("email = ?", userRequestObj.Email).Find(&users)
 	} else {
-		return config.BuildErrorResponse("give either mobile or email", "error", nil),
+		return config.BuildErrorResponse("give either mobile or email", "", nil),
 			http.StatusBadRequest
 
 	}
 	if userObj.Error != nil {
-		return config.BuildErrorResponse("internal server error", "internal server error", nil),
-			http.StatusBadRequest
+		return config.BuildErrorResponse("internal server error", userObj.Error.Error(), nil),
+			http.StatusInternalServerError
 	}
 
 	if len(users) == 0 {
 		return config.BuildResponse("",
-			serializers.UserStatusResponse{OnBoardingStatus: "on_boarding_started"}), http.StatusOK
+			userSerializers.UserStatusResponse{OnBoardingStatus: userEnums.OnBoardingStarted}), http.StatusOK
 	}
-	var user serializers.UserStatusResponse
+	var user userSerializers.UserStatusResponse
 	user.OnBoardingStatus = users[0].OnBoardingStatus
 	return config.BuildResponse("", user), http.StatusOK
 
 }
-func CreateUserService(userInfo *serializers.CreateUser) {
+func CreateUserService(userInfo *authSerializers.Credentials) uint {
 	db := config.GetDb()
-	user, password := serializers.CreateUserModels(userInfo)
+	user, password := userSerializers.CreateUserModels(userInfo)
 	db.Create(user)
 	db.Create(password)
+	return user.ID
 
 }

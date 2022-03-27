@@ -1,15 +1,22 @@
 package main
 
 import (
-	"awesomeProject/accounts/models"
 	"awesomeProject/config"
 	"awesomeProject/routes"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/joho/godotenv"
 	"log"
+	"os"
 )
 
 func main() {
+	envErr := godotenv.Load(".env")
+	if envErr != nil {
+		fmt.Printf("Could not load .env file")
+		os.Exit(1)
+	}
 	err := config.ConnectDatabase()
 	if err != nil {
 		log.Println("Error Connecting to the Database", err.Error())
@@ -25,8 +32,7 @@ func main() {
 			log.Println("closed database")
 		}
 	}(db)
-
-	db.AutoMigrate(&models.User{}, models.Password{})
+	config.AutoMigrate()
 
 	router := routes.NewRoutes()
 	err = router.Run("localhost:8081")

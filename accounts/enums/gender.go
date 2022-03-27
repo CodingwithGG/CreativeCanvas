@@ -1,4 +1,4 @@
-package enums
+package userEnums
 
 type Gender string
 

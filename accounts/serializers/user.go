@@ -1,8 +1,11 @@
-package serializers
+package userSerializers
 
 import (
 	"awesomeProject/accounts/enums"
 	"awesomeProject/accounts/models"
+	"awesomeProject/authentication/models"
+	"awesomeProject/authentication/serializers"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserStatusRequest struct {
@@ -11,25 +14,24 @@ type UserStatusRequest struct {
 }
 
 type UserStatusResponse struct {
-	OnBoardingStatus enums.OnBoardingStatus `form:"on_boarding_status"`
+	OnBoardingStatus userEnums.OnBoardingStatus `form:"on_boarding_status"`
 }
 
-type CreateUser struct {
-	Email            string                 `form:"email"`
-	Mobile           string                 `form:"mobile"`
-	Password         string                 `form:"password"`
-	OnBoardingStatus enums.OnBoardingStatus `form:"on_boarding_status"`
-}
+func CreateUserModels(userSerializer *authSerializers.Credentials) (*userModels.User, *authModels.Password) {
+	var user userModels.User
+	var password authModels.Password
+	encryptedPassword, _ := bcrypt.GenerateFromPassword([]byte(userSerializer.Password), 14)
+	password.Password = encryptedPassword
+	user.VerificationStatus = userEnums.Unverified
+	if userSerializer.Mobile != "" {
+		user.Mobile = &userSerializer.Mobile
+		password.Mobile = &userSerializer.Mobile
+		user.OnBoardingStatus = userEnums.OnBoardingMobile
+	} else {
+		password.Email = &userSerializer.Email
+		user.Email = &userSerializer.Email
+		user.OnBoardingStatus = userEnums.OnBoardingEmail
+	}
 
-func CreateUserModels(userSerializer *CreateUser) (*models.User, *models.Password) {
-	var user models.User
-	var password models.Password
-	password.Password = userSerializer.Password
-	password.Mobile = userSerializer.Mobile
-	password.Email = userSerializer.Email
-	user.Mobile = userSerializer.Mobile
-	user.Email = userSerializer.Email
-	user.OnBoardingStatus = userSerializer.OnBoardingStatus
-	user.VerificationStatus = enums.Unverified
 	return &user, &password
 }

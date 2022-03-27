@@ -20,9 +20,13 @@ func NewRoutes() routes {
 	r := routes{
 		router: gin.Default(),
 	}
-
+	//r.router.Use(cors.New(cors.Config{
+	//	AllowCredentials: true,
+	//}))
 	v1 := r.router.Group("/v1")
 	r.user(v1)
+	r.auth(v1)
+	r.categories(v1)
 
 	return r
 }

@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
-	"github.com/joho/godotenv"
 	"os"
 )
 
@@ -15,11 +14,6 @@ func GetDb() *gorm.DB {
 }
 
 func ConnectDatabase() error {
-	envErr := godotenv.Load(".env")
-	if envErr != nil {
-		fmt.Printf("Could not load .env file")
-		os.Exit(1)
-	}
 	dialect := os.Getenv("DIALECT")
 	host := os.Getenv("HOST")
 	dbPort := os.Getenv("DBPORT")
